@@ -9,8 +9,14 @@ import Image
 import numpy
 import cv2
 from naoqi import ALProxy
+from naoqi import ALModule
+from goto import goto, comefrom, label
 from detection import redBallDetection,naoMarkDetection,yellowStickDetection,whiteBlockDetection
 from movement import catchStick,hitBall,standWithStick,raiseStick
+
+#------------------------------------------------全局变量定义-------------------------------------------------------------#
+holeFlag = 0
+#-----------------------------------------------全局变量定义结束-------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------#
 #*********************************************************************************************************************
@@ -94,9 +100,40 @@ def robotRotate(angle, robotIP, port):
         MOTION.setMoveArmsEnabled(False, False)
         MOTION.moveTo(0.0,0.0,angle,moveConfig)
 
+class Golf(ALModule):
+    def __init__(self, name):
+        ALModule.__init__(self, name):
+        self.memory = ALProxy("ALMemory")
+        self.memory.subscribeToEvent("ChestButtonPressed", "Golf", "chestButtonPressed")
+        self.memory.subscribeToEvent("FrontTactilTouched", "Golf", "frontTactilTouched")
+        self.memory.subscribeToEvent("MiddleTactilTouched", "Golf", "middleTactilTouched")
+        self.memory.subscribeToEvent("RearTactilTouched", "Golf", "rearTactilTouched")
+
+    def frontTactilTouched(self):
+        self.memory.unsubscribeToEvent("FrontTactilTouched", "Golf")
+        holeFlag = 1
+        self.memory.subscribeToEvent("FrontTactilTouched", "Golf", "frontTactilTouched")
+        goto .restart
+    def middleTactilTouched(self):
+        self.memory.unsubscribeToEvent("MiddleTactilTouched", "Golf")
+        holeFlag = 2
+        self.memory.subscribeToEvent("MiddleTactilTouched", "Golf", "middleTactilTouched")
+        goto .restart
+    def rearTactilTouched(self):
+        self.memory.unsubscribeToEvent("RearTactilTouched", "Golf")
+        holeFlag = 3
+        self.memory.subscribeToEvent("RearTactilTouched", "Golf", "rearTactilTouched")
+        goto .restart
+    def chestButtonPressed(self):
+        self.memory.unsubscribeToEvent("ChestButtonPressed", "Golf")
+        holeFlag = 0
+        self.memory.subscribeToEvent("ChestButtonPressed", "Golf", "chestButtonPressed")
+        goto .restart
+    def fallDownDetected(self):
+        pass
 
 #----------------------------------------------------主函数------------------------------------------------------------#
-def main(robotIP,port):
+def main(robotIP, port):
 
     #设置机器人各个模块代理
     MEMORY = ALProxy("ALMemory", robotIP, port)
@@ -109,99 +146,112 @@ def main(robotIP,port):
     TOUCH = ALProxy("ALTouch", robotIP, port)
     SENSORS = ALProxy("ALSensors", robotIP, port)
 
+    #实例化
+    Golf = Golf("Golf")
+
     redBallDetectMethod = 1
 
-    #侦测机器人头部触摸事件
-    SENSORS.subscribe("MiddleTactilTouched")
     #初始化机器人电机
     MOTION.wakeUp()
     #让机器人保持一个便于运动的姿势
     POSTURE.goToPosture("StandInit", 0.5)
-    TTS.say("请摸我的头部开始游戏")
-    while(True):
-        if(MEMORY.getData("MiddleTactilTouched")):
-            TTS.say("请把球杆放在我的手上，然后触摸我的手背")
-            #抓杆
-            catchStick(robotIP, port)
-            TTS.say("谢谢")
-            while(True):
-                #让杆放在合适位置，准备移动
-                raiseStick(robotIP, port)
-                standWithStick(0.1, robotIP, port)
-                #检测红球
-                redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 0, robotIP, port)
+    TTS.say("游戏开始")
+    catchStick(robotIP, port)
+    try:
+        while(True):
+            label .restart
+            #第一个球洞
+            if(holeFlag == 1):
+                while(True):
+                    #让杆放在合适位置，准备移动
+                    raiseStick(robotIP, port)
+                    standWithStick(0.1, robotIP, port)
+                    #检测红球
+                    redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 0, robotIP, port)
 
-                #第一次,机器人转到正对球的方向
-                TTS.say("第一次移动")
-                MOTION.setMoveArmsEnabled(False, False)
-                MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
-                time.sleep(1)
-
-                #第二次,机器人走到距离球20厘米的位置
-                TTS.say("第二次移动")
-                MOTION.setMoveArmsEnabled(False, False)
-                MOTION.moveTo(redBallInfo[0]-0.3,0,0,moveConfig)
-
-                MOTION.waitUntilMoveIsFinished()
-
-                #第三次,机器人再次对准球,进行修正
-                TTS.say("第三次移动")
-                redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
-                MOTION.setMoveArmsEnabled(False, False)
-                MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
-
-                time.sleep(1)
-
-                #第四次,机器人走到离球10厘米的位置
-                TTS.say("第四次移动")
-                MOTION.setMoveArmsEnabled(False, False)
-                MOTION.moveTo(redBallInfo[0]-0.2,0,0,moveConfig)
-
-                TTS.say("移动完毕")
-                time.sleep(1)
-                redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
-                #检测mark标志
-                markInfo = naoMarkDetection(robotIP, port)
-                if(markInfo != False):
-                    #根据机器人、球、球洞解算三角关系，并移到最终击球位置
-                    theta,x,y = calculation(redBallInfo,markInfo)
-
-                    #修正阈值，在场上需要根据实际情况调整
-                    theta -= 0.1
-                    x -= 0.30
-                    y -= 0.05
-                    #先移动角度
-                    robotRotate(theta, robotIP, port)
-                    time.sleep(1.0)
-                    MOTION.moveTo(x,0.0,0.0,moveConfig)
+                    #第一次,机器人转到正对球的方向
+                    TTS.say("第一次移动")
                     MOTION.setMoveArmsEnabled(False, False)
-                    MOTION.moveTo(0.0,y,0.0,moveConfig)
+                    MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
+                    time.sleep(1)
 
-                    MOTION.angleInterpolation("HeadYaw",0,0.5,True)
-                    #击球
-                    hitBall(0.1, robotIP, port)
-                    time.sleep(3)
-                #没有检测到mark标志，检测黄杆
-                else:
-                    stickInfo = yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
-                    #移动机器人正对黄杆
-                    theta,x,y = calculation(redBallInfo,stickInfo)
-                    #先移动角度
-                    robotRotate(theta, robotIP, port)
-                    time.sleep(1.0)
-                    #修正阈值，在场上需要根据实际情况调整
-                    x -= 0.25
-                    y -= 0.05
-
-                    MOTION.moveTo(x,0.0,0.0,moveConfig)
+                    #第二次,机器人走到距离球20厘米的位置
+                    TTS.say("第二次移动")
                     MOTION.setMoveArmsEnabled(False, False)
-                    MOTION.moveTo(0.0,y,0.0,moveConfig)
+                    MOTION.moveTo(redBallInfo[0]-0.3,0,0,moveConfig)
 
-                    MOTION.angleInterpolation("HeadYaw",0,0.5,True)
-                    #击球
-                    hitBall(0.1, robotIP, port)
-                    time.sleep(3)
+                    MOTION.waitUntilMoveIsFinished()
 
+                    #第三次,机器人再次对准球,进行修正
+                    TTS.say("第三次移动")
+                    redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
+                    MOTION.setMoveArmsEnabled(False, False)
+                    MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
+
+                    time.sleep(1)
+
+                    #第四次,机器人走到离球10厘米的位置
+                    TTS.say("第四次移动")
+                    MOTION.setMoveArmsEnabled(False, False)
+                    MOTION.moveTo(redBallInfo[0]-0.2,0,0,moveConfig)
+
+                    TTS.say("移动完毕")
+                    time.sleep(1)
+                    redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
+                    #检测mark标志
+                    markInfo = naoMarkDetection(robotIP, port)
+                    if(markInfo != False):
+                        #根据机器人、球、球洞解算三角关系，并移到最终击球位置
+                        theta,x,y = calculation(redBallInfo,markInfo)
+
+                        #修正阈值，在场上需要根据实际情况调整
+                        theta -= 0.1
+                        x -= 0.30
+                        y -= 0.05
+                        #先移动角度
+                        robotRotate(theta, robotIP, port)
+                        time.sleep(1.0)
+                        MOTION.moveTo(x,0.0,0.0,moveConfig)
+                        MOTION.setMoveArmsEnabled(False, False)
+                        MOTION.moveTo(0.0,y,0.0,moveConfig)
+
+                        MOTION.angleInterpolation("HeadYaw",0,0.5,True)
+                        #击球
+                        hitBall(0.1, robotIP, port)
+                        time.sleep(3)
+                    #没有检测到mark标志，检测黄杆
+                    else:
+                        stickInfo = yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
+                        #移动机器人正对黄杆
+                        theta,x,y = calculation(redBallInfo,stickInfo)
+                        #先移动角度
+                        robotRotate(theta, robotIP, port)
+                        time.sleep(1.0)
+                        #修正阈值，在场上需要根据实际情况调整
+                        x -= 0.25
+                        y -= 0.05
+
+                        MOTION.moveTo(x,0.0,0.0,moveConfig)
+                        MOTION.setMoveArmsEnabled(False, False)
+                        MOTION.moveTo(0.0,y,0.0,moveConfig)
+
+                        MOTION.angleInterpolation("HeadYaw",0,0.5,True)
+                        #击球
+                        hitBall(0.1, robotIP, port)
+                        time.sleep(3)
+
+            #第二个球洞
+            if(holeFlag == 2):
+                while(True):
+                    pass
+            #第三个球洞
+            if(holeFlag == 3):
+                while(True):
+                    pass
+    except KeyboardInterrupt:
+        print
+        print "Interrupted by user, shutting down"
+        sys.exit(0)
 
 #---------------------------------------------------------------------------------------------------------------------#
 if __name__ == "__main__":
