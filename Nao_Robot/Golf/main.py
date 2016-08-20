@@ -14,6 +14,8 @@ from goto import goto, comefrom, label
 from detection import redBallDetection,naoMarkDetection,yellowStickDetection,whiteBlockDetection
 from movement import catchStick,hitBall,standWithStick,raiseStick
 
+#添加了一个注释
+
 #------------------------------------------------全局变量定义-------------------------------------------------------------#
 holeFlag = 0
 #-----------------------------------------------全局变量定义结束-------------------------------------------------------#
