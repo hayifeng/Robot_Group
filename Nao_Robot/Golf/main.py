@@ -8,16 +8,18 @@ import argparse
 import Image
 import numpy
 import cv2
+from naoqi import ALBroker
 from naoqi import ALProxy
 from naoqi import ALModule
-from goto import goto, comefrom, label
-from detection import redBallDetection,naoMarkDetection,yellowStickDetection,whiteBlockDetection
-from movement import catchStick,hitBall,standWithStick,raiseStick
-
-#添加了一个注释
+from detection import redBallDetection,naoMarkDetection,yellowStickDetection,whiteBlockDetection,whiteBorderDetection
+from movement import catchStick,hitBall,standWithStick,raiseStick,releaseStick
 
 #------------------------------------------------全局变量定义-------------------------------------------------------------#
 holeFlag = 0
+robotHasFallenFlag = 0
+leftHandTouchedFlag = 0
+rightHandTouchedFlag = 0
+myGolf = None
 #-----------------------------------------------全局变量定义结束-------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------#
@@ -103,39 +105,67 @@ def robotRotate(angle, robotIP, port):
         MOTION.moveTo(0.0,0.0,angle,moveConfig)
 
 class Golf(ALModule):
-    def __init__(self, name):
-        ALModule.__init__(self, name):
+    def __init__(self, name, robotIP, port):
+        ALModule.__init__(self, name)
+        self.robotIP = robotIP
+        self.port = port
         self.memory = ALProxy("ALMemory")
-        self.memory.subscribeToEvent("ChestButtonPressed", "Golf", "chestButtonPressed")
-        self.memory.subscribeToEvent("FrontTactilTouched", "Golf", "frontTactilTouched")
-        self.memory.subscribeToEvent("MiddleTactilTouched", "Golf", "middleTactilTouched")
-        self.memory.subscribeToEvent("RearTactilTouched", "Golf", "rearTactilTouched")
+        self.motion = ALProxy("ALMotion")
+        self.posture = ALProxy("ALRobotPosture")
+        self.memory.subscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf", "chestButtonPressed")
+        self.memory.subscribeToEvent("FrontTactilTouched", "myGolf", "frontTactilTouched")
+        self.memory.subscribeToEvent("MiddleTactilTouched", "myGolf", "middleTactilTouched")
+        self.memory.subscribeToEvent("RearTactilTouched", "myGolf", "rearTactilTouched")
+        self.memory.subscribeToEvent("robotHasFallen", "myGolf", "fallDownDetected")
 
     def frontTactilTouched(self):
-        self.memory.unsubscribeToEvent("FrontTactilTouched", "Golf")
+        print "frontTactilTouched!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("FrontTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 1
-        self.memory.subscribeToEvent("FrontTactilTouched", "Golf", "frontTactilTouched")
-        goto .restart
+        self.memory.subscribeToEvent("FrontTactilTouched", "myGolf", "frontTactilTouched")
+
     def middleTactilTouched(self):
-        self.memory.unsubscribeToEvent("MiddleTactilTouched", "Golf")
+        print "middleTactilTouched!!!!!!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("MiddleTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 2
-        self.memory.subscribeToEvent("MiddleTactilTouched", "Golf", "middleTactilTouched")
-        goto .restart
+        self.memory.subscribeToEvent("MiddleTactilTouched", "myGolf", "middleTactilTouched")
+
     def rearTactilTouched(self):
-        self.memory.unsubscribeToEvent("RearTactilTouched", "Golf")
+        print "rearTactilTouched!!!!!!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("RearTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 3
-        self.memory.subscribeToEvent("RearTactilTouched", "Golf", "rearTactilTouched")
-        goto .restart
+        self.memory.subscribeToEvent("RearTactilTouched", "myGolf", "rearTactilTouched")
+
     def chestButtonPressed(self):
-        self.memory.unsubscribeToEvent("ChestButtonPressed", "Golf")
+        print "chestButtonPressed!!!!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf")
+        global holeFlag
         holeFlag = 0
-        self.memory.subscribeToEvent("ChestButtonPressed", "Golf", "chestButtonPressed")
-        goto .restart
+        self.motion.angleInterpolationWithSpeed("LHand", 0.8, 1)
+        time.sleep(2)
+        self.motion.angleInterpolationWithSpeed("LHand", 0.2, 1)
+        self.motion.rest()
+        self.memory.subscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf", "chestButtonPressed")
+
     def fallDownDetected(self):
-        pass
+        print "fallDownDetected!!!!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("robotHasFallen", "myGolf")
+        global robotHasFallenFlag
+        robotHasFallenFlag = 1
+        self.posture.goToPosture("StandInit", 0.5)
+        releaseStick(self.robotIP, self.port)
+        time.sleep(5)
+        catchStick(self.robotIP, self.port)
+        standWithStick(0.1, self.robotIP, self.port)
+        self.memory.subscribeToEvent("robotHasFallen", "myGolf", "fallDownDetected")
 
 #----------------------------------------------------主函数------------------------------------------------------------#
 def main(robotIP, port):
+
+    myBroker = ALBroker("myBroker", "0.0.0.0", 0, robotIP, port)
 
     #设置机器人各个模块代理
     MEMORY = ALProxy("ALMemory", robotIP, port)
@@ -149,56 +179,57 @@ def main(robotIP, port):
     SENSORS = ALProxy("ALSensors", robotIP, port)
 
     #实例化
-    Golf = Golf("Golf")
-
+    global myGolf
+    myGolf = Golf("myGolf", robotIP, port)
+    MOTION.setFallManagerEnabled(True)
+    SENSORS.subscribe("HandLeftLeftTouched",500,0.0)
     redBallDetectMethod = 1
 
-    #初始化机器人电机
-    MOTION.wakeUp()
-    #让机器人保持一个便于运动的姿势
-    POSTURE.goToPosture("StandInit", 0.5)
-    TTS.say("游戏开始")
-    catchStick(robotIP, port)
     try:
         while(True):
-            label .restart
-            #第一个球洞
-            if(holeFlag == 1):
+            if(MOTION.robotIsWakeUp() == False):
+                MOTION.wakeUp()
+                #让机器人保持一个便于运动的姿势
+                POSTURE.goToPosture("StandInit", 0.5)
+                TTS.say("游戏开始")
+                releaseStick(robotIP, port)
                 while(True):
-                    #让杆放在合适位置，准备移动
-                    raiseStick(robotIP, port)
-                    standWithStick(0.1, robotIP, port)
-                    #检测红球
+                    temp =MEMORY.getData("HandLeftLeftTouched")
+                    if(temp):
+                        catchStick(robotIP, port)
+                        break
+                #让杆放在合适位置，准备移动
+                raiseStick(robotIP, port)
+                standWithStick(0.1, robotIP, port)
+            time.sleep(1)
+            print "holeFlag =",holeFlag
+            if(holeFlag != 0):
+                while(True):
+                    MOTION.setMoveArmsEnabled(False, False)
                     redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 0, robotIP, port)
+                    while(redBallInfo[0] >= 1):
+                        MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
+                        time.sleep(1)
+                        MOTION.moveTo(0.8,0,0,moveConfig)
+                        time.sleep(1)
+                        redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 0, robotIP, port)
+                        if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            break
 
-                    #第一次,机器人转到正对球的方向
-                    TTS.say("第一次移动")
-                    MOTION.setMoveArmsEnabled(False, False)
+                    if(holeFlag == 0 or robotHasFallenFlag == 1):
+                        global robotHasFallenFlag
+                        robotHasFallenFlag = 0
+                        break
+
                     MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
                     time.sleep(1)
-
-                    #第二次,机器人走到距离球20厘米的位置
-                    TTS.say("第二次移动")
-                    MOTION.setMoveArmsEnabled(False, False)
-                    MOTION.moveTo(redBallInfo[0]-0.3,0,0,moveConfig)
-
-                    MOTION.waitUntilMoveIsFinished()
-
-                    #第三次,机器人再次对准球,进行修正
-                    TTS.say("第三次移动")
-                    redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
-                    MOTION.setMoveArmsEnabled(False, False)
-                    MOTION.moveTo(0,0,redBallInfo[1],moveConfig)
-
-                    time.sleep(1)
-
-                    #第四次,机器人走到离球10厘米的位置
-                    TTS.say("第四次移动")
-                    MOTION.setMoveArmsEnabled(False, False)
                     MOTION.moveTo(redBallInfo[0]-0.2,0,0,moveConfig)
 
-                    TTS.say("移动完毕")
-                    time.sleep(1)
+                    if(holeFlag == 0 or robotHasFallenFlag == 1):
+                        global robotHasFallenFlag
+                        robotHasFallenFlag = 0
+                        break
+
                     redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
                     #检测mark标志
                     markInfo = naoMarkDetection(robotIP, port)
@@ -214,42 +245,71 @@ def main(robotIP, port):
                         robotRotate(theta, robotIP, port)
                         time.sleep(1.0)
                         MOTION.moveTo(x,0.0,0.0,moveConfig)
-                        MOTION.setMoveArmsEnabled(False, False)
+                        time.sleep(1.0)
                         MOTION.moveTo(0.0,y,0.0,moveConfig)
-
                         MOTION.angleInterpolation("HeadYaw",0,0.5,True)
-                        #击球
-                        hitBall(0.1, robotIP, port)
-                        time.sleep(3)
+
+                        if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
+                            robotHasFallenFlag = 0
+                            break
+
+                        if(holeFlag == 1):
+                            hitBall(0.1, robotIP, port)
+                            time.sleep(1)
+                        elif(holeFlag == 2):
+                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            if(tempAngle):
+                                pass
+                                #旋转tempAngle把球打出去
+                            else:
+                                hitBall(0.1, robotIP, port)
+                                time.sleep(1)
+                        elif(holeFlag == 3):
+                            pass
                     #没有检测到mark标志，检测黄杆
                     else:
                         stickInfo = yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
-                        #移动机器人正对黄杆
                         theta,x,y = calculation(redBallInfo,stickInfo)
-                        #先移动角度
-                        robotRotate(theta, robotIP, port)
-                        time.sleep(1.0)
-                        #修正阈值，在场上需要根据实际情况调整
                         x -= 0.25
                         y -= 0.05
-
+                        robotRotate(theta, robotIP, port)
+                        time.sleep(1.0)
                         MOTION.moveTo(x,0.0,0.0,moveConfig)
-                        MOTION.setMoveArmsEnabled(False, False)
+                        time.sleep(1.0)
                         MOTION.moveTo(0.0,y,0.0,moveConfig)
-
                         MOTION.angleInterpolation("HeadYaw",0,0.5,True)
-                        #击球
-                        hitBall(0.1, robotIP, port)
-                        time.sleep(3)
 
-            #第二个球洞
-            if(holeFlag == 2):
-                while(True):
-                    pass
-            #第三个球洞
-            if(holeFlag == 3):
-                while(True):
-                    pass
+                        if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
+                            robotHasFallenFlag = 0
+                            break
+
+                        if(holeFlag == 1):
+                            hitBall(0.1, robotIP, port)
+                            time.sleep(1)
+                        elif(holeFlag == 2):
+                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            if(tempAngle):
+                                #旋转tempAngle把球打出去
+                                pass
+                            else:
+                                hitBall(0.1, robotIP, port)
+                                time.sleep(1)
+                        elif(holeFlag == 3):
+                            tempAngle = whiteBorderDetection(0, robotIP, port)
+                            if(tempAngle):
+                                pass
+                                #旋转tempAngle把球打出去
+                            else:
+                                hitBall(0.1, robotIP, port)
+                                time.sleep(1)
+
+                        if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
+                            robotHasFallenFlag = 0
+                            break
+
     except KeyboardInterrupt:
         print
         print "Interrupted by user, shutting down"

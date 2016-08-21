@@ -12,7 +12,7 @@ from naoqi import ALProxy
 from movement import standWithStick
 
 #----------------------------------------------全局变量定义------------------------------------------------------------#
-topCameraHeight = 0.542         #robot top camera height
+topCameraHeight = 0.532         #robot top camera height
 bottomCameraHeight = 0.478      #robot bottom camera height
 cameraHFOV = 60.97               #camera horizontal field of view
 cameraVFOV = 47.64               #camera vertical field of view
@@ -112,7 +112,7 @@ def pictureHandle(cameraID, thresholdMin, thresholdMax, robotIP="127.0.0.1", por
     #--------------------------------测试代码-----------------------------------#
     #cv2.namedWindow("image",cv2.WINDOW_NORMAL)
     #cv2.namedWindow("image1",cv2.WINDOW_NORMAL)
-    #cv2.imshow("image",dilation)
+    #cv2.imshow("image",imgTest)
     #cv2.imshow("image1",erosion)
     #cv2.waitKey(0)
     #--------------------------------测试结束-----------------------------------#
@@ -139,7 +139,7 @@ def pictureHandle(cameraID, thresholdMin, thresholdMax, robotIP="127.0.0.1", por
 #            检测失败返回False
 #@功能说明： 对红球进行识别和定位
 #           单目测距，距离越远误差越大，可通过多次校验减少误差
-#@最后修改日期：2016-8-6
+#@最后修改日期：2016-8-20
 #*********************************************************************************************************************
 def redBallDetection(red_thresholdMin, red_thresholdMax, method=1, addAngle=0, robotIP="127.0.0.1", port=9559):
     MOTION = ALProxy("ALMotion", robotIP, port)
@@ -299,18 +299,13 @@ def redBallDetection(red_thresholdMin, red_thresholdMax, method=1, addAngle=0, r
         TTS.say("哈哈，我看到了")
 
         cnt = redBallContours[0]
-        #获取图像的距
-        M = cv2.moments(cnt)
+        bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
 
-        #红球重心
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
+        #计算红球最下方的点和图片中心的距离，正：红球在中心左边   负：红球在中心右边
+        disX = imageWidth/2 - bottommost[0]
+        disY = bottommost[1] - imageHeight/2
 
-        #计算红球重心和图片中心的距离，正：红球在中心左边   负：红球在中心右边
-        disX = imageWidth/2 - cx
-        disY = cy - imageHeight/2
-
-        #计算红球重心和图片中心的偏转角度，机器人水平视角为60.97°
+        #计算红球最下方和图片中心的偏转角度，机器人水平视角为60.97°
         ballAngleH = cameraHFOV / imageWidth * disX
         ballAngleV = cameraVFOV / imageHeight * disY
         if(cameraID == 0):
@@ -327,17 +322,19 @@ def redBallDetection(red_thresholdMin, red_thresholdMax, method=1, addAngle=0, r
             ballAngleH = ballAngleH
 
         #机器人到球的距离
-        distBall = cameraHeight/(math.tan(ballAngleV * math.pi/180.0))
+        distBall = cameraHeight / (math.tan(ballAngleV * math.pi/180.0)) / math.cos(ballAngleH*math.pi/180.0)
 
         #---------------------------------测试代码--------------------------------------------#
-        print "distBall = ",distBall
-        print "ballAngleH = ",ballAngleH*math.pi/180.0
+        #print "bottommost = ",bottommost
+        #print "distBall = ",distBall
+        #print "distBallDiret = ",distBallDiret
+        #print "ballAngleH = ",ballAngleH*math.pi/180.0
         #imgTest = cv2.imread("camImage.png",1)
-        #cv2.circle(imgTest,(cx,cy), 5, (0,255,255), -1)
-        #cv2.namedWindow("image",cv2.WINDOW_NORMAL)
+        #cv2.circle(imgTest, bottommost, 1, (0,255,255), -1)
+        #cv2.namedWindow("image", cv2.WINDOW_NORMAL)
         #cv2.namedWindow("image2",cv2.WINDOW_NORMAL)
         #cv2.namedWindow("image3",cv2.WINDOW_NORMAL)
-        #cv2.imshow("image",dilation)
+        #cv2.imshow("image",imgTest)
         #cv2.imshow("image",imgTest)
         #cv2.imshow("image3",th1)
         #cv2.waitKey(0)
@@ -353,7 +350,7 @@ def redBallDetection(red_thresholdMin, red_thresholdMax, method=1, addAngle=0, r
 #            检测失败返回False
 #@功能说明： 计算机器人到nao mark的距离和角度。循环5次对nao mark进行识别，无法识别返回False，
 #           识别成功根据等距离法计算出nao mark距离
-#@最后修改日期：2016-8-6
+#@最后修改日期：2016-8-20
 #*********************************************************************************************************************
 def naoMarkDetection(robotIP="127.0.0.1", port=9559):
     MOTION = ALProxy("ALMotion", robotIP, port)
@@ -432,7 +429,7 @@ def naoMarkDetection(robotIP="127.0.0.1", port=9559):
         alpha = alpha
 
     #利用等比例法测出机器人到mark的距离
-    distMark = naoMarkDiameter / size
+    distMark = (naoMarkDiameter / size) / math.cos(alpha)
 
     #返回nao mark距离和角度值
     print "the disMark = ",distMark
@@ -451,7 +448,7 @@ def naoMarkDetection(robotIP="127.0.0.1", port=9559):
 #@功能说明： 识别球洞黄杆，计算机器人和黄杆的偏转角度以及距离。
 #           采用opencv进行图片处理，每次获取黄杆重心像素点的坐标值。
 #           单目测距，等比例法，有误差。
-#@最后修改日期：2016-8-6
+#@最后修改日期：2016-8-20
 #*********************************************************************************************************************
 def yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP="127.0.0.1", port=9559):
     MOTION = ALProxy("ALMotion", robotIP, port)
@@ -498,17 +495,13 @@ def yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP="127.
 
     TTS.say("哈哈，我看到了")
     cnt = imageContours[0]
-    #获取图像的距
-    M = cv2.moments(cnt)
+    #获取黄杆最下方的点
+    bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
 
-    #黄杆重心
-    cx = int(M['m10']/M['m00'])
-    cy = int(M['m01']/M['m00'])
-
-    #计算黄杆重心和图片中心的距离，正：黄杆在中心左边   负：黄杆在中心右边
-    disX = imageWidth/2 - cx
-    disY = cy - imageHeight/2
-    #计算黄杆重心和图片中心的偏转角度，机器人水平视角为60.97°
+    #计算黄杆最下方的点和图片中心的距离，正：黄杆在中心左边   负：黄杆在中心右边
+    disX = imageWidth/2 - bottommost[0]
+    disY = bottommost[1] - imageHeight/2
+    #计算黄杆最下方的点和图片中心的偏转角度，机器人水平视角为60.97°
     stickAngleH = cameraHFOV / imageWidth * disX
     stickAngleV = cameraVFOV / imageHeight * disY + 1.2
     if(angleFlag == 1):
@@ -517,18 +510,18 @@ def yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP="127.
         stickAngleH = stickAngleH - 45
     else:
         stickAngleH = stickAngleH
-
-    distStick = (topCameraHeight - yellowStickHeight/2) / (math.tan(stickAngleV * math.pi/180.0))
+    #手动减去0.06，校准误差，不科学但是很管用
+    distStick = (topCameraHeight - 0.06) / (math.tan(stickAngleV * math.pi/180.0)) / math.cos(stickAngleH*math.pi/180.0)
 
     #--------------------------测试代码-----------------------------------#
-    print "distStick = ",distStick
-    print "stickAngleH = ",stickAngleH
+    #print "distStick = ",distStick
+    #print "stickAngleH = ",stickAngleH
     #imgTest = cv2.imread("camImage.png",1)
-    #cv2.circle(imgTest,(cx,cy), 5, (0,0,255), -1)
+    #cv2.circle(imgTest,bottommost, 5, (0,0,255), -1)
     #cv2.namedWindow("image",cv2.WINDOW_NORMAL)
     #cv2.namedWindow("image2",cv2.WINDOW_NORMAL)
     #cv2.namedWindow("image3",cv2.WINDOW_NORMAL)
-    #cv2.imshow("image",dilation)
+    #cv2.imshow("image",imgTest)
     #cv2.imshow("image",imgTest)
     #cv2.imshow("image3",th1)
     #cv2.waitKey(0)
@@ -644,10 +637,10 @@ def whiteBlockDetection(cameraID=0, robotIP="127.0.0.1", port=9559):
     cv2.waitKey(0)
     #--------------------------------测试结束-----------------------------------#
 
-        return finalAngle
+    #    return finalAngle
     #没有障碍物就返回False
-    else:
-        return False
+    #else:
+    #    return False
 
 
 #---------------------------------------------------------------------------------------------------------------------#
@@ -674,8 +667,8 @@ if __name__ == "__main__":
     robotIP = args.ip
     port = args.port
 
-    #yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
+    yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
     #pictureHandle(0, yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
     #redBallDetection(red_thresholdMin, red_thresholdMax, 1, 0, robotIP, port)
     #naoMarkDetection(robotIP, port)
-    whiteBlockDetection(0,robotIP,port)
+    #whiteBlockDetection(0,robotIP,port)
