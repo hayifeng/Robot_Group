@@ -8,7 +8,7 @@ import argparse
 from naoqi import ALProxy
 
 #-----------------------------------------------------机器人姿势定义---------------------------------------------------#
-def positionCatchStick1():
+def positionReleaseStick():
     names = list()
     times = list()
     keys = list()
@@ -117,7 +117,7 @@ def positionCatchStick1():
     times.append([1.2])
     keys.append([0.0429101])
     return [names,keys,times]
-def positionCatchStick2():
+def positionCatchStick():
     names = list()
     times = list()
     keys = list()
@@ -706,19 +706,15 @@ def standWithStick(speed=0.1, robotIP="127.0.0.1", port=9559):
 #@最后修改日期：2016-8-6
 #*********************************************************************************************************************
 def catchStick(robotIP="127.0.0.1", port=9559):
-    SENSORS = ALProxy("ALSensors", robotIP, port)
     MOTION = ALProxy("ALMotion", robotIP, port)
-    MEMORY = ALProxy("ALMemory", robotIP, port)
-    #监听左手触摸事件
-    SENSORS.subscribe("HandLeftLeftTouched",500,0.0)
-    names, keys, times = positionCatchStick1()
+    names, keys, times = positionCatchStick()
     MOTION.angleInterpolation(names, keys, times, True)
-    while(True):
-        temp =MEMORY.getData("HandLeftLeftTouched")
-        if(temp):
-            names, keys, times = positionCatchStick2()
-            MOTION.angleInterpolation(names, keys, times, True)
-            break
+
+
+def releaseStick(robotIP="127.0.0.1", port=9559):
+    MOTION = ALProxy("ALMotion", robotIP, port)
+    names, keys, times = positionReleaseStick()
+    MOTION.angleInterpolation(names, keys, times, True)
 
 #---------------------------------------------------------------------------------------------------------------------#
 #*********************************************************************************************************************
@@ -738,6 +734,10 @@ def hitBall(hitBallSpeed, robotIP="127.0.0.1", port=9559):
     time.sleep(2)
     names, keys, times = positionHitBall2(hitBallSpeed)
     MOTION.angleInterpolation(names, keys, times, True)
+    time.sleep(1)
+    raiseStick(robotIP, port)
+    time.sleep(1)
+    standWithStick(0.1, robotIP, port)
 
 
 if __name__ == "__main__":
