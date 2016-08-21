@@ -12,11 +12,13 @@ from naoqi import ALBroker
 from naoqi import ALProxy
 from naoqi import ALModule
 from detection import redBallDetection,naoMarkDetection,yellowStickDetection,whiteBlockDetection,whiteBorderDetection
-from movement import catchStick,hitBall,standWithStick,raiseStick
+from movement import catchStick,hitBall,standWithStick,raiseStick,releaseStick
 
 #------------------------------------------------全局变量定义-------------------------------------------------------------#
 holeFlag = 0
 robotHasFallenFlag = 0
+leftHandTouchedFlag = 0
+rightHandTouchedFlag = 0
 myGolf = None
 #-----------------------------------------------全局变量定义结束-------------------------------------------------------#
 
@@ -108,37 +110,56 @@ class Golf(ALModule):
         self.robotIP = robotIP
         self.port = port
         self.memory = ALProxy("ALMemory")
-        self.memory.subscribeToEvent("ChestButtonPressed", "myGolf", "chestButtonPressed")
+        self.motion = ALProxy("ALMotion")
+        self.posture = ALProxy("ALRobotPosture")
+        self.memory.subscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf", "chestButtonPressed")
         self.memory.subscribeToEvent("FrontTactilTouched", "myGolf", "frontTactilTouched")
         self.memory.subscribeToEvent("MiddleTactilTouched", "myGolf", "middleTactilTouched")
         self.memory.subscribeToEvent("RearTactilTouched", "myGolf", "rearTactilTouched")
         self.memory.subscribeToEvent("robotHasFallen", "myGolf", "fallDownDetected")
 
     def frontTactilTouched(self):
+        print "frontTactilTouched!!!!!!!!!!!!!"
         self.memory.unsubscribeToEvent("FrontTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 1
         self.memory.subscribeToEvent("FrontTactilTouched", "myGolf", "frontTactilTouched")
 
     def middleTactilTouched(self):
+        print "middleTactilTouched!!!!!!!!!!!!!!!!!!"
         self.memory.unsubscribeToEvent("MiddleTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 2
         self.memory.subscribeToEvent("MiddleTactilTouched", "myGolf", "middleTactilTouched")
 
     def rearTactilTouched(self):
-
+        print "rearTactilTouched!!!!!!!!!!!!!!!!!!"
         self.memory.unsubscribeToEvent("RearTactilTouched", "myGolf")
+        global holeFlag
         holeFlag = 3
         self.memory.subscribeToEvent("RearTactilTouched", "myGolf", "rearTactilTouched")
 
     def chestButtonPressed(self):
-        self.memory.unsubscribeToEvent("ChestButtonPressed", "myGolf")
+        print "chestButtonPressed!!!!!!!!!!!!!!!!"
+        self.memory.unsubscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf")
+        global holeFlag
         holeFlag = 0
-        self.memory.subscribeToEvent("ChestButtonPressed", "myGolf", "chestButtonPressed")
+        self.motion.angleInterpolationWithSpeed("LHand", 0.8, 1)
+        time.sleep(2)
+        self.motion.angleInterpolationWithSpeed("LHand", 0.2, 1)
+        self.motion.rest()
+        self.memory.subscribeToEvent("ALChestButton/TripleClickOccurred", "myGolf", "chestButtonPressed")
 
     def fallDownDetected(self):
+        print "fallDownDetected!!!!!!!!!!!!!!!!"
         self.memory.unsubscribeToEvent("robotHasFallen", "myGolf")
+        global robotHasFallenFlag
         robotHasFallenFlag = 1
+        self.posture.goToPosture("StandInit", 0.5)
+        releaseStick(self.robotIP, self.port)
+        time.sleep(5)
         catchStick(self.robotIP, self.port)
+        standWithStick(0.1, self.robotIP, self.port)
         self.memory.subscribeToEvent("robotHasFallen", "myGolf", "fallDownDetected")
 
 #----------------------------------------------------主函数------------------------------------------------------------#
@@ -160,22 +181,28 @@ def main(robotIP, port):
     #实例化
     global myGolf
     myGolf = Golf("myGolf", robotIP, port)
-
+    MOTION.setFallManagerEnabled(True)
+    SENSORS.subscribe("HandLeftLeftTouched",500,0.0)
     redBallDetectMethod = 1
 
-    #初始化机器人电机
-    MOTION.wakeUp()
-    #让机器人保持一个便于运动的姿势
-    POSTURE.goToPosture("StandInit", 0.5)
-    TTS.say("游戏开始")
-
-    catchStick(robotIP, port)
-    #让杆放在合适位置，准备移动
-    raiseStick(robotIP, port)y
-    standWithStick(0.1, robotIP, port)
     try:
         while(True):
+            if(MOTION.robotIsWakeUp() == False):
+                MOTION.wakeUp()
+                #让机器人保持一个便于运动的姿势
+                POSTURE.goToPosture("StandInit", 0.5)
+                TTS.say("游戏开始")
+                releaseStick(robotIP, port)
+                while(True):
+                    temp =MEMORY.getData("HandLeftLeftTouched")
+                    if(temp):
+                        catchStick(robotIP, port)
+                        break
+                #让杆放在合适位置，准备移动
+                raiseStick(robotIP, port)
+                standWithStick(0.1, robotIP, port)
             time.sleep(1)
+            print "holeFlag =",holeFlag
             if(holeFlag != 0):
                 while(True):
                     MOTION.setMoveArmsEnabled(False, False)
@@ -190,6 +217,7 @@ def main(robotIP, port):
                             break
 
                     if(holeFlag == 0 or robotHasFallenFlag == 1):
+                        global robotHasFallenFlag
                         robotHasFallenFlag = 0
                         break
 
@@ -198,6 +226,7 @@ def main(robotIP, port):
                     MOTION.moveTo(redBallInfo[0]-0.2,0,0,moveConfig)
 
                     if(holeFlag == 0 or robotHasFallenFlag == 1):
+                        global robotHasFallenFlag
                         robotHasFallenFlag = 0
                         break
 
@@ -221,6 +250,7 @@ def main(robotIP, port):
                         MOTION.angleInterpolation("HeadYaw",0,0.5,True)
 
                         if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
 
@@ -228,7 +258,9 @@ def main(robotIP, port):
                             hitBall(0.1, robotIP, port)
                             time.sleep(1)
                         elif(holeFlag == 2):
-                            if(tempAngle = whiteBlockDetection(0, robotIP, port)):
+                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            if(tempAngle):
+                                pass
                                 #旋转tempAngle把球打出去
                             else:
                                 hitBall(0.1, robotIP, port)
@@ -249,6 +281,7 @@ def main(robotIP, port):
                         MOTION.angleInterpolation("HeadYaw",0,0.5,True)
 
                         if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
 
@@ -256,19 +289,24 @@ def main(robotIP, port):
                             hitBall(0.1, robotIP, port)
                             time.sleep(1)
                         elif(holeFlag == 2):
-                            if(tempAngle = whiteBlockDetection(0, robotIP, port)):
+                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            if(tempAngle):
                                 #旋转tempAngle把球打出去
+                                pass
                             else:
                                 hitBall(0.1, robotIP, port)
                                 time.sleep(1)
                         elif(holeFlag == 3):
-                            if(tempAngle = whiteBorderDetection(0, robotIP, port)):
+                            tempAngle = whiteBorderDetection(0, robotIP, port)
+                            if(tempAngle):
+                                pass
                                 #旋转tempAngle把球打出去
                             else:
                                 hitBall(0.1, robotIP, port)
                                 time.sleep(1)
 
                         if(holeFlag == 0 or robotHasFallenFlag == 1):
+                            global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
 
