@@ -8,114 +8,115 @@ import argparse
 from naoqi import ALProxy
 
 #-----------------------------------------------------机器人姿势定义---------------------------------------------------#
-def positionReleaseStick():
+def postureReleaseStick():
+
     names = list()
     times = list()
     keys = list()
 
     names.append("HeadPitch")
-    times.append([1])
-    keys.append([0.05825])
+    times.append([1.08])
+    keys.append([-0.00215657])
 
     names.append("HeadYaw")
-    times.append([1])
-    keys.append([0.00609397])
+    times.append([1.08])
+    keys.append([0])
 
     names.append("LAnklePitch")
-    times.append([1])
-    keys.append([-0.385075])
+    times.append([1.08])
+    keys.append([-0.358999])
 
     names.append("LAnkleRoll")
-    times.append([1])
-    keys.append([4.19617e-05])
+    times.append([1.08])
+    keys.append([-0.00147909])
 
     names.append("LElbowRoll")
-    times.append([1])
-    keys.append([-1.1704])
+    times.append([1.08])
+    keys.append([-0.537794])
 
     names.append("LElbowYaw")
-    times.append([1])
-    keys.append([-1.42666])
+    times.append([1.08])
+    keys.append([-1.4488])
 
     names.append("LHand")
-    times.append([1])
-    keys.append([0.95])
+    times.append([1.08])
+    keys.append([1])
 
     names.append("LHipPitch")
-    times.append([1])
-    keys.append([-0.454021])
+    times.append([1.08])
+    keys.append([-0.444635])
 
     names.append("LHipRoll")
-    times.append([1])
-    keys.append([-0.00302602])
+    times.append([1.08])
+    keys.append([0.00744654])
 
     names.append("LHipYawPitch")
-    times.append([1])
-    keys.append([-0.021434])
+    times.append([1.08])
+    keys.append([-0.00721956])
 
     names.append("LKneePitch")
-    times.append([1])
-    keys.append([0.682588])
+    times.append([1.08])
+    keys.append([0.696988])
 
     names.append("LShoulderPitch")
-    times.append([1])
-    keys.append([0.895815])
+    times.append([1.08])
+    keys.append([0.283386])
 
     names.append("LShoulderRoll")
-    times.append([1])
-    keys.append([-0.00157595])
+    times.append([1.08])
+    keys.append([-0.00171348])
 
     names.append("LWristYaw")
-    times.append([1])
-    keys.append([-0.11049])
+    times.append([1.08])
+    keys.append([-0.0934926])
 
     names.append("RAnklePitch")
-    times.append([1])
-    keys.append([-0.397265])
+    times.append([1.08])
+    keys.append([-0.357381])
 
     names.append("RAnkleRoll")
-    times.append([1])
-    keys.append([0.00157595])
+    times.append([1.08])
+    keys.append([0.00361548])
 
     names.append("RElbowRoll")
-    times.append([1])
-    keys.append([0.530805])
+    times.append([1.08])
+    keys.append([0.546897])
 
     names.append("RElbowYaw")
-    times.append([1])
-    keys.append([1.38976])
+    times.append([1.08])
+    keys.append([1.39182])
 
     names.append("RHand")
-    times.append([1])
-    keys.append([0.0512])
+    times.append([1.08])
+    keys.append([0.0644])
 
     names.append("RHipPitch")
-    times.append([1])
-    keys.append([-0.466378])
+    times.append([1.08])
+    keys.append([-0.45268])
 
     names.append("RHipRoll")
-    times.append([1])
-    keys.append([0.00310993])
+    times.append([1.08])
+    keys.append([-0.00643682])
 
     names.append("RHipYawPitch")
-    times.append([1])
-    keys.append([-0.021434])
+    times.append([1.08])
+    keys.append([-0.00721956])
 
     names.append("RKneePitch")
-    times.append([1])
-    keys.append([0.694945])
+    times.append([1.08])
+    keys.append([0.693492])
 
     names.append("RShoulderPitch")
-    times.append([1])
-    keys.append([1.47728])
+    times.append([1.08])
+    keys.append([1.45116])
 
     names.append("RShoulderRoll")
-    times.append([1])
-    keys.append([-0.224006])
+    times.append([1.08])
+    keys.append([-0.252997])
 
     names.append("RWristYaw")
-    times.append([1])
-    keys.append([0.030638])
+    times.append([1.08])
+    keys.append([0.0160101])
 
     return [names,keys,times]
 def positionCatchStick():
@@ -124,109 +125,108 @@ def positionCatchStick():
     keys = list()
 
     names.append("HeadPitch")
-    times.append([0.92])
-    keys.append([0.05825])
+    times.append([1.08])
+    keys.append([-0.00215657])
 
     names.append("HeadYaw")
-    times.append([0.92])
-    keys.append([0.00609397])
-
-    names.append("LAnklePitch")
-    times.append([0.92])
-    keys.append([-0.385075])
-
-    names.append("LAnkleRoll")
-    times.append([0.92])
-    keys.append([4.19617e-05])
-
-    names.append("LElbowRoll")
-    times.append([0.92])
-    keys.append([-1.1704])
-
-    names.append("LElbowYaw")
-    times.append([0.92])
-    keys.append([-1.42666])
-
-    names.append("LHand")
-    times.append([0.92])
+    times.append([1.08])
     keys.append([0])
 
+    names.append("LAnklePitch")
+    times.append([1.08])
+    keys.append([-0.358999])
+
+    names.append("LAnkleRoll")
+    times.append([1.08])
+    keys.append([-0.00147909])
+
+    names.append("LElbowRoll")
+    times.append([1.08])
+    keys.append([-0.537794])
+
+    names.append("LElbowYaw")
+    times.append([1.08])
+    keys.append([-1.4488])
+
+    names.append("LHand")
+    times.append([1.08])
+    keys.append([0.0])
+
     names.append("LHipPitch")
-    times.append([0.92])
-    keys.append([-0.454021])
+    times.append([1.08])
+    keys.append([-0.444635])
 
     names.append("LHipRoll")
-    times.append([0.92])
-    keys.append([-0.00302602])
+    times.append([1.08])
+    keys.append([0.00744654])
 
     names.append("LHipYawPitch")
-    times.append([0.92])
-    keys.append([-0.021434])
+    times.append([1.08])
+    keys.append([-0.00721956])
 
     names.append("LKneePitch")
-    times.append([0.92])
-    keys.append([0.682588])
+    times.append([1.08])
+    keys.append([0.696988])
 
     names.append("LShoulderPitch")
-    times.append([0.92])
-    keys.append([0.895815])
+    times.append([1.08])
+    keys.append([0.283386])
 
     names.append("LShoulderRoll")
-    times.append([0.92])
-    keys.append([-0.00157595])
+    times.append([1.08])
+    keys.append([-0.00171348])
 
     names.append("LWristYaw")
-    times.append([0.92])
-    keys.append([-0.11049])
+    times.append([1.08])
+    keys.append([-0.0934926])
 
     names.append("RAnklePitch")
-    times.append([0.92])
-    keys.append([-0.397265])
+    times.append([1.08])
+    keys.append([-0.357381])
 
     names.append("RAnkleRoll")
-    times.append([0.92])
-    keys.append([0.00157595])
+    times.append([1.08])
+    keys.append([0.00361548])
 
     names.append("RElbowRoll")
-    times.append([0.92])
-    keys.append([0.530805])
+    times.append([1.08])
+    keys.append([0.546897])
 
     names.append("RElbowYaw")
-    times.append([0.92])
-    keys.append([1.38976])
+    times.append([1.08])
+    keys.append([1.39182])
 
     names.append("RHand")
-    times.append([0.92])
-    keys.append([0.0512])
+    times.append([1.08])
+    keys.append([0.0644])
 
     names.append("RHipPitch")
-    times.append([0.92])
-    keys.append([-0.466378])
+    times.append([1.08])
+    keys.append([-0.45268])
 
     names.append("RHipRoll")
-    times.append([0.92])
-    keys.append([0.00310993])
+    times.append([1.08])
+    keys.append([-0.00643682])
 
     names.append("RHipYawPitch")
-    times.append([0.92])
-    keys.append([-0.021434])
+    times.append([1.08])
+    keys.append([-0.00721956])
 
     names.append("RKneePitch")
-    times.append([0.92])
-    keys.append([0.694945])
+    times.append([1.08])
+    keys.append([0.693492])
 
     names.append("RShoulderPitch")
-    times.append([0.92])
-    keys.append([1.47728])
+    times.append([1.08])
+    keys.append([1.45116])
 
     names.append("RShoulderRoll")
-    times.append([0.92])
-    keys.append([-0.224006])
+    times.append([1.08])
+    keys.append([-0.252997])
 
     names.append("RWristYaw")
-    times.append([0.92])
-    keys.append([0.030638])
-
+    times.append([1.08])
+    keys.append([0.0160101])
     return [names,keys,times]
 def positionHitBall1():
     names = list()
@@ -235,11 +235,11 @@ def positionHitBall1():
 
     names.append("HeadPitch")
     times.append([1])
-    keys.append([0.05825])
+    keys.append([0.0])
 
     names.append("HeadYaw")
     times.append([1])
-    keys.append([0.00609397])
+    keys.append([0.0])
 
     names.append("LAnklePitch")
     times.append([1])
@@ -258,8 +258,8 @@ def positionHitBall1():
     keys.append([-1.42666])
 
     names.append("LHand")
-    times.append([0.8])
-    keys.append([0.2728])
+    times.append([1])
+    keys.append([0])
 
     names.append("LHipPitch")
     times.append([1])
@@ -286,8 +286,8 @@ def positionHitBall1():
     keys.append([-0.00157595])
 
     names.append("LWristYaw")
-    times.append([1])
-    keys.append([1.0])
+    times.append([0.8])
+    keys.append([1.20602])
 
     names.append("RAnklePitch")
     times.append([1])
@@ -338,114 +338,116 @@ def positionHitBall1():
     keys.append([0.030638])
 
     return [names,keys,times]
-def positionHitBall2(speedTime):
+def positionHitBall(speedTime):
+
     names = list()
     times = list()
     keys = list()
 
     names.append("HeadPitch")
-    times.append([1])
-    keys.append([0.05825])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("HeadYaw")
-    times.append([1])
-    keys.append([0.00609397])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("LAnklePitch")
-    times.append([1])
-    keys.append([-0.385075])
+    times.append([1.5, 3])
+    keys.append([-0.358999, -0.358999])
 
     names.append("LAnkleRoll")
-    times.append([1])
-    keys.append([4.19617e-05])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("LElbowRoll")
-    times.append([1])
-    keys.append([-1.1704])
+    times.append([1.5, 3])
+    keys.append([-0.545276, -0.545276])
 
     names.append("LElbowYaw")
-    times.append([1])
-    keys.append([-1.42666])
+    times.append([1.5, 3])
+    keys.append([-1.44257, -1.44257])
 
     names.append("LHand")
-    times.append([speedTime])
-    keys.append([0.2728])
+    times.append([1.5, 3])
+    keys.append([0.05, 0.08])
 
     names.append("LHipPitch")
-    times.append([1])
-    keys.append([-0.454021])
+    times.append([1.5, 3])
+    keys.append([-0.446352, -0.446352])
 
     names.append("LHipRoll")
-    times.append([1])
-    keys.append([-0.00302602])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("LHipYawPitch")
-    times.append([1])
-    keys.append([-0.021434])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("LKneePitch")
-    times.append([1])
-    keys.append([0.682588])
+    times.append([1.5, 3])
+    keys.append([0.704064, 0.704064])
 
     names.append("LShoulderPitch")
-    times.append([1])
-    keys.append([0.895815])
+    times.append([1.5, 3])
+    keys.append([0.286009, 0.286009])
 
     names.append("LShoulderRoll")
-    times.append([1])
-    keys.append([-0.00157595])
+    times.append([1.5, 3])
+    keys.append([1.32042, -0.00551104])
 
     names.append("LWristYaw")
-    times.append([1])
-    keys.append([-1.0])
+    times.append([1.5, 3])
+    keys.append([1.07408, 0.524645])
 
     names.append("RAnklePitch")
-    times.append([1])
-    keys.append([-0.397265])
+    times.append([1.5, 3])
+    keys.append([-0.357381, -0.357381])
 
     names.append("RAnkleRoll")
-    times.append([1])
-    keys.append([0.00157595])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("RElbowRoll")
-    times.append([1])
-    keys.append([0.530805])
+    times.append([1.5, 3])
+    keys.append([0.548729, 0.548729])
 
     names.append("RElbowYaw")
-    times.append([1])
-    keys.append([1.38976])
+    times.append([1.5, 3])
+    keys.append([1.39238, 1.39238])
 
     names.append("RHand")
-    times.append([1])
-    keys.append([0.0512])
+    times.append([1.5, 3])
+    keys.append([0.0644, 0.0644])
 
     names.append("RHipPitch")
-    times.append([1])
-    keys.append([-0.466378])
+    times.append([1.5, 3])
+    keys.append([-0.455641, -0.455641])
 
     names.append("RHipRoll")
-    times.append([1])
-    keys.append([0.00310993])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("RHipYawPitch")
-    times.append([1])
-    keys.append([-0.021434])
+    times.append([1.5, 3])
+    keys.append([0, 0])
 
     names.append("RKneePitch")
-    times.append([1])
-    keys.append([0.694945])
+    times.append([1.5, 3])
+    keys.append([0.699545, 0.699545])
 
     names.append("RShoulderPitch")
-    times.append([1])
-    keys.append([1.47728])
+    times.append([1.5, 3])
+    keys.append([1.44445, 1.44445])
 
     names.append("RShoulderRoll")
-    times.append([1])
-    keys.append([-0.224006])
+    times.append([1.5, 3])
+    keys.append([-0.271401, -0.25895])
 
     names.append("RWristYaw")
-    times.append([1])
-    keys.append([0.030638])
+    times.append([1.5, 3])
+    keys.append([0.0152981, 0.0152981])
+
 
     return [names,keys,times]
 def positionStandWithStick():
@@ -454,219 +456,221 @@ def positionStandWithStick():
     keys = list()
 
     names.append("HeadPitch")
-    times.append([1.2])
-    keys.append([0.05825])
+    times.append([2])
+    keys.append([-0.00215657])
 
     names.append("HeadYaw")
-    times.append([1.2])
-    keys.append([0.00609397])
-
-    names.append("LAnklePitch")
-    times.append([1.2])
-    keys.append([-0.00924586])
-
-    names.append("LAnkleRoll")
-    times.append([1.2])
-    keys.append([4.19617e-05])
-
-    names.append("LElbowRoll")
-    times.append([1.2])
-    keys.append([-0.076658])
-
-    names.append("LElbowYaw")
-    times.append([1.2])
-    keys.append([-1.38218])
-
-    names.append("LHand")
-    times.append([1.2])
+    times.append([2])
     keys.append([0])
 
+    names.append("LAnklePitch")
+    times.append([2])
+    keys.append([-0.358999])
+
+    names.append("LAnkleRoll")
+    times.append([2])
+    keys.append([-0.00147909])
+
+    names.append("LElbowRoll")
+    times.append([2])
+    keys.append([-0.0701831])
+
+    names.append("LElbowYaw")
+    times.append([2])
+    keys.append([-0.00257829])
+
+    names.append("LHand")
+    times.append([2])
+    keys.append([0.000842703])
+
     names.append("LHipPitch")
-    times.append([1.2])
-    keys.append([-0.00762796])
+    times.append([2])
+    keys.append([-0.444635])
 
     names.append("LHipRoll")
-    times.append([1.2])
-    keys.append([-0.00302602])
+    times.append([2])
+    keys.append([0.00744654])
 
     names.append("LHipYawPitch")
-    times.append([1.2])
-    keys.append([-0.00149202])
+    times.append([2])
+    keys.append([-0.00721956])
 
     names.append("LKneePitch")
-    times.append([1.2])
-    keys.append([0.00609397])
+    times.append([2])
+    keys.append([0.696988])
 
     names.append("LShoulderPitch")
-    times.append([1.2])
-    keys.append([1.82736])
+    times.append([2])
+    keys.append([1.80089])
 
     names.append("LShoulderRoll")
-    times.append([1.2])
-    keys.append([0.289883])
+    times.append([2])
+    keys.append([0.38314])
 
     names.append("LWristYaw")
-    times.append([1.2])
-    keys.append([-0.138102])
+    times.append([2])
+    keys.append([-1.62353])
 
     names.append("RAnklePitch")
-    times.append([1.2])
-    keys.append([0.00157595])
+    times.append([2])
+    keys.append([-0.368008])
 
     names.append("RAnkleRoll")
-    times.append([1.2])
-    keys.append([0.00157595])
+    times.append([2])
+    keys.append([0.00361548])
 
     names.append("RElbowRoll")
-    times.append([1.2])
-    keys.append([0.0874801])
+    times.append([2])
+    keys.append([0.546897])
 
     names.append("RElbowYaw")
-    times.append([1.2])
-    keys.append([1.34681])
+    times.append([2])
+    keys.append([1.39182])
 
     names.append("RHand")
-    times.append([1.2])
-    keys.append([0.0404])
+    times.append([2])
+    keys.append([0.0644])
 
     names.append("RHipPitch")
-    times.append([1.2])
-    keys.append([-0.00310993])
+    times.append([2])
+    keys.append([-0.45268])
 
     names.append("RHipRoll")
-    times.append([1.2])
-    keys.append([0.00310993])
+    times.append([2])
+    keys.append([-0.00643682])
 
     names.append("RHipYawPitch")
-    times.append([1.2])
-    keys.append([-0.00149202])
+    times.append([2])
+    keys.append([-0.00721956])
 
     names.append("RKneePitch")
-    times.append([1.2])
-    keys.append([4.19617e-05])
+    times.append([2])
+    keys.append([0.693492])
 
     names.append("RShoulderPitch")
-    times.append([1.2])
-    keys.append([1.57393])
+    times.append([2])
+    keys.append([1.44085])
 
     names.append("RShoulderRoll")
-    times.append([1.2])
-    keys.append([-0.280764])
+    times.append([2])
+    keys.append([-0.262521])
 
     names.append("RWristYaw")
-    times.append([1.2])
-    keys.append([0.030638])
+    times.append([2])
+    keys.append([0.0160101])
 
     return [names, keys, times]
 def positionRaiseStick():
+
     names = list()
     times = list()
     keys = list()
 
     names.append("HeadPitch")
-    times.append([1])
-    keys.append([0.05825])
+    times.append([1.08, 1.68])
+    keys.append([-0.00215657, -0.00215657])
 
     names.append("HeadYaw")
-    times.append([1])
-    keys.append([0.00609397])
+    times.append([1.08, 1.68])
+    keys.append([0, 0])
 
     names.append("LAnklePitch")
-    times.append([1])
-    keys.append([-0.382009])
+    times.append([1.08, 1.68])
+    keys.append([-0.358999, -0.358999])
 
     names.append("LAnkleRoll")
-    times.append([1])
-    keys.append([4.19617e-05])
+    times.append([1.08, 1.68])
+    keys.append([-0.00147909, -0.00147909])
 
     names.append("LElbowRoll")
-    times.append([1])
-    keys.append([-0.995524])
+    times.append([1.08, 1.68])
+    keys.append([-0.537794, -0.537794])
 
     names.append("LElbowYaw")
-    times.append([1])
-    keys.append([-1.34229])
+    times.append([1.08, 1.68])
+    keys.append([-1.4488, -1.4488])
 
     names.append("LHand")
-    times.append([1])
-    keys.append([0.2872])
+    times.append([1.08, 1.68])
+    keys.append([0.0687508, 0.16])
 
     names.append("LHipPitch")
-    times.append([1])
-    keys.append([-0.450955])
+    times.append([1.08, 1.68])
+    keys.append([-0.444635, -0.444635])
 
     names.append("LHipRoll")
-    times.append([1])
-    keys.append([-0.00302602])
+    times.append([1.08, 1.68])
+    keys.append([0.00744654, 0.00744654])
 
     names.append("LHipYawPitch")
-    times.append([1])
-    keys.append([-0.024502])
+    times.append([1.08, 1.68])
+    keys.append([-0.00721956, -0.00721956])
 
     names.append("LKneePitch")
-    times.append([1])
-    keys.append([0.682588])
+    times.append([1.08, 1.68])
+    keys.append([0.696988, 0.696988])
 
     names.append("LShoulderPitch")
-    times.append([1])
-    keys.append([0.380391])
+    times.append([1.08, 1.68])
+    keys.append([0.283386, 0.283386])
 
     names.append("LShoulderRoll")
-    times.append([1])
-    keys.append([0.320565])
+    times.append([1.08, 1.68])
+    keys.append([-0.000886967, 1.32045])
 
     names.append("LWristYaw")
-    times.append([1])
-    keys.append([0.846485])
+    times.append([1.08, 1.68])
+    keys.append([1.65869, 1.07807])
 
     names.append("RAnklePitch")
-    times.append([1])
-    keys.append([-0.38806])
+    times.append([1.08, 1.68])
+    keys.append([-0.357381, -0.357381])
 
     names.append("RAnkleRoll")
-    times.append([1])
-    keys.append([0.00464392])
+    times.append([1.08, 1.68])
+    keys.append([0.00361548, 0.00361548])
 
     names.append("RElbowRoll")
-    times.append([1])
-    keys.append([0.549213])
+    times.append([1.08, 1.68])
+    keys.append([0.546897, 0.546897])
 
     names.append("RElbowYaw")
-    times.append([1])
-    keys.append([1.38823])
+    times.append([1.08, 1.68])
+    keys.append([1.39182, 1.39182])
 
     names.append("RHand")
-    times.append([1])
-    keys.append([0.0648])
+    times.append([1.08, 1.68])
+    keys.append([0.0644, 0.0644])
 
     names.append("RHipPitch")
-    times.append([1])
-    keys.append([-0.467912])
+    times.append([1.08, 1.68])
+    keys.append([-0.45268, -0.45268])
 
     names.append("RHipRoll")
-    times.append([1])
-    keys.append([0.00310993])
+    times.append([1.08, 1.68])
+    keys.append([-0.00643682, -0.00643682])
 
     names.append("RHipYawPitch")
-    times.append([1])
-    keys.append([-0.024502])
+    times.append([1.08, 1.68])
+    keys.append([-0.00721956, -0.00721956])
 
     names.append("RKneePitch")
-    times.append([1])
-    keys.append([0.705682])
+    times.append([1.08, 1.68])
+    keys.append([0.693492, 0.693492])
 
     names.append("RShoulderPitch")
-    times.append([1])
-    keys.append([1.49416])
+    times.append([1.08, 1.68])
+    keys.append([1.44085, 1.44085])
 
     names.append("RShoulderRoll")
-    times.append([1])
-    keys.append([-0.208666])
+    times.append([1.08, 1.68])
+    keys.append([-0.265356, -0.276408])
 
     names.append("RWristYaw")
-    times.append([1])
-    keys.append([0.0444441])
+    times.append([1.08, 1.68])
+    keys.append([0.0160101, 0.0160101])
     return [names, keys, times]
+
 #---------------------------------------------------机器人姿势定义结束--------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------#
@@ -741,7 +745,7 @@ def hitBall(hitBallSpeed, robotIP="127.0.0.1", port=9559):
     raiseStick(robotIP, port)
     time.sleep(1)
     standWithStick(0.1, robotIP, port)
-
+    #打球后需要旋转90°面向击球方向
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -749,18 +753,38 @@ if __name__ == "__main__":
                         help="Robot ip address.")
     parser.add_argument("--port", type=int, default=9559,
                         help="Robot port number.")
+    parser.add_argument("--MaxStepX", type=float, default=0.02,
+                        help="maximum forward translation along X (meters)")
+    parser.add_argument("--MaxStepY", type=float, default=0.14,
+                        help="absolute maximum lateral translation along Y (meters)")
+    parser.add_argument("--MaxStepTheta", type=float, default=0.3,
+                        help="absolute maximum rotation around Z (radians)")
+    parser.add_argument("--MaxStepFrequency", type=float, default=0.9,
+                        help="maximum step frequency (normalized, unit-less)")
+    parser.add_argument("--StepHeight", type=float, default=0.02,
+                        help="peak foot elevation along Z (meters)")
+    parser.add_argument("--TorsoWx", type=float, default=0.0,
+                        help="peak torso rotation around X (radians)")
+    parser.add_argument("--TorsoWy", type=float, default=0.0,
+                        help="peak torso rotation around Y (radians)")
+    parser.add_argument("--robotHeight", type=float, default=0.478,
+                        help="robot's height")
+
 
     args = parser.parse_args()
 
+    moveConfig = [["MaxStepX",args.MaxStepX],["MaxStepY",args.MaxStepY],["MaxStepTheta",args.MaxStepTheta],["MaxStepFrequency",args.MaxStepFrequency],
+                    ["StepHeight",args.StepHeight],["TorsoWx",args.TorsoWx],["TorsoWy",args.TorsoWy]]
+
     robotIP = args.ip
     port = args.port
-    catchStick(robotIP, port)
-    time.sleep(2)
+    #catchStick(robotIP, port)
+
+    #raiseStick(robotIP, port)
     #time.sleep(2)
-    raiseStick(robotIP, port)
-    time.sleep(2)
-    standWithStick(0.1, robotIP, port)
-    time.sleep(2)
-    raiseStick(robotIP, port)
-    time.sleep(2)
-    hitBall(0.1, robotIP, port)
+    #standWithStick(0.1, robotIP, port)
+    #time.sleep(2)
+    #raiseStick(robotIP, port)
+    #time.sleep(2)
+    #hitBall(0.1, robotIP, port)
+    #MOTION = ALProxy("ALMotion", robotIP, port)
