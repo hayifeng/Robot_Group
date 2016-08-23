@@ -27,51 +27,54 @@ myGolf = None
 #@函数名：   calculation()
 #@参数：     redBallInfo - 列表，包含机器人到红球的距离和角度值
 #           targetInfo - 列表，包含机器人到目标的距离和角度值
-#@返回值：   列表，包含机器人最终旋转角度，x,y
+#@返回值：   [angle,x,y]
+#           angle - 机器人需要移动的角度
+#           x - 机器人在x轴需要移动的距离
+#           y - 机器人在y轴需要移动的距离
 #@功能说明： 根据机器人、红球、目标三个点的距离及角度值，解算三角函数，
-#           求出最终机器人需要移动的角度值，x和y。
-#@最后修改日期：2016-8-18
+#           求出最终机器人移动到三点一线上需要移动的角度值，x和y。
+#           为了避免机器人移动过程中碰撞到球，建议移动顺序是angle -> x -> y
+#@最后修改日期：2016-8-22
 #*********************************************************************************************************************
 def calculation(redBallInfo,targetInfo):
 
-    thetah = redBallInfo[1]
-    alpha = targetInfo[1]
-    dx = redBallInfo[0]
-    d1 = targetInfo[0]
+    angleRobotAndBall = redBallInfo[1]
+    angleRobotAndTarget = targetInfo[1]
+    distRobotToBall = redBallInfo[0]
+    distRobotToTarget = targetInfo[0]
 
-    theta3 = abs( thetah- alpha)
-    dball = dx
-    dmark = d1
-    dbm2 = dx*dx + d1*d1 -2*dx*d1*math.cos(theta3)
-    dbm = math.sqrt(dbm2)       #dbm : 球和mark标志的距离
+    alpha = abs( angleRobotAndBall - angleRobotAndTarget)
+    distBallToTarget2 = distRobotToBall*distRobotToBall + distRobotToTarget*distRobotToTarget -2*distRobotToBall*distRobotToTarget*math.cos(alpha)
+    distBallToTarget = math.sqrt(distBallToTarget2)
 
-    ctheta4 = (dball*dball + dbm2 - dmark*dmark)/(2*dball*dbm)
-    theta4 = math.acos(ctheta4)     #theta4 ：机器人到球直线 和 球到mark直线  夹角
-    print "distance for mark to ball = ",dbm
-    print "temp angle = ",theta4
-    if thetah - alpha >= 0:
-        if theta4 >= math.pi/2:
-            theta = theta4 - math.pi/2      #theta就是最终机器人需要旋转的角度，旋转90°是因为要和球保持垂直
-            x = dball*math.sin(theta4)      #x:最终机器人x轴的移动距离
-            y = dball*math.cos(theta4)      # y：最终机器人y轴的移动距离
+    theta2 = (distRobotToBall*distRobotToBall + distBallToTarget2 - distRobotToTarget*distRobotToTarget)/(2*distRobotToBall*distBallToTarget)
+    theta = math.acos(theta2)     #theta ：distRobotToBall 和 distBallToTarget 夹角
+
+    if angleRobotAndBall - angleRobotAndTarget >= 0:
+        if theta >= math.pi/2:
+            #angle:锐角，负;    x： 正;   y: 正
+            angle = theta - math.pi
+            x = -distRobotToBall*math.cos(theta)
+            y = distRobotToBall*math.sin(theta)
         else:
-            theta = math.pi/2 - theta4
-            x = dball*math.sin(theta4)
-            y = dball*math.cos(theta4)
-
+            #angle:钝角, 负;    x: 负;   y: 正
+            angle = theta - math.pi
+            x = -distRobotToBall*math.cos(theta)
+            y = distRobotToBall*math.sin(theta)
     else:
-        if theta4 >= math.pi/2:
-            theta = 3*math.pi/2 - theta4
-            x = -dball*math.sin(theta4)
-            y = dball*math.cos(theta4)
+        if theta >= math.pi/2:
+            #angle: 锐角, 正;  x: 正;   y: 负
+            angle = math.pi - theta
+            x = -distRobotToBall*math.cos(theta)
+            y = -distRobotToBall*math.sin(theta)
         else:
-            theta = -math.pi/2 - theta4
-            x = -dball*math.sin(theta4)
-            y = dball*math.cos(theta4)
-
+            #angle: 钝角, 正;  x: 负;   y: 负
+            angle = math.pi - theta
+            x = -distRobotToBall*math.cos(theta)
+            y = -distRobotToBall*math.sin(theta)
     print "finalx = ",x,"finaly = ",y
-    print "finalAngle = ",theta
-    return [theta,x,y]
+    print "finalAngle = ",angle
+    return [angle,x,y]
 
 #---------------------------------------------------------------------------------------------------------------------#
 #*********************************************************************************************************************
@@ -186,10 +189,10 @@ def main(robotIP, port):
     redBallDetectMethod = 1
 
     try:
+        #-----------------------------------------------------主死循环，待机状态-----------------------------------------------------#
         while(True):
             if(MOTION.robotIsWakeUp() == False):
                 MOTION.wakeUp()
-                #让机器人保持一个便于运动的姿势
                 POSTURE.goToPosture("StandInit", 0.5)
                 TTS.say("游戏开始")
                 releaseStick(robotIP, port)
@@ -204,6 +207,7 @@ def main(robotIP, port):
             time.sleep(1)
             print "holeFlag =",holeFlag
             if(holeFlag != 0):
+                #---------------------------------------------次死循环，工作状态------------------------------------------------------#
                 while(True):
                     MOTION.setMoveArmsEnabled(False, False)
                     redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 0, robotIP, port)
@@ -231,17 +235,16 @@ def main(robotIP, port):
                         break
 
                     redBallInfo = redBallDetection(red_thresholdMin, red_thresholdMax, redBallDetectMethod, 20, robotIP, port)
-                    #检测mark标志
                     markInfo = naoMarkDetection(robotIP, port)
+                    #-----------------------------------检测到 nao_mark 标志，近距离打球-----------------------------------------------#
                     if(markInfo != False):
-                        #根据机器人、球、球洞解算三角关系，并移到最终击球位置
                         theta,x,y = calculation(redBallInfo,markInfo)
 
                         #修正阈值，在场上需要根据实际情况调整
                         theta -= 0.1
                         x -= 0.30
                         y -= 0.05
-                        #先移动角度
+
                         robotRotate(theta, robotIP, port)
                         time.sleep(1.0)
                         MOTION.moveTo(x,0.0,0.0,moveConfig)
@@ -253,25 +256,46 @@ def main(robotIP, port):
                             global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
-
+                        #-------------------------------------近距离第一个球洞--------------------------------------------------------#
                         if(holeFlag == 1):
+                            MOTION.moveTo(0.0, 0.0, math.pi/2, moveConfig)
+                            time.sleep(1)
+                            MOTION.moveTo(-0.2, 0.0, 0.0, moveConfig)
+                            time.sleep(1)
+                            MOTION.moveTo(0.0, -0.2, 0.0, moveConfig)
                             hitBall(0.1, robotIP, port)
                             time.sleep(1)
+                            MOTION.moveTo(0, 0, -math.pi/2, moveConfig)
+                            time.sleep(1)
+                        #--------------------------------------近距离第二个球洞-------------------------------------------------------#
                         elif(holeFlag == 2):
-                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            tempAngle = whiteBlockDetection(robotIP, port)
                             if(tempAngle):
-                                pass
-                                #旋转tempAngle把球打出去
+                                angleHit = math.pi/2 - tempAngle
+                                x = 0.2 * math.sin(tempAngle) - 0.20
+                                y = 0.2 * math.cos(tempAngle) - 0.05
+                                MOTION.moveTo(0.0, 0.0, angleHit, moveConfig)
+                                time.sleep(1.0)
+                                MOTION.moveTo(0.0, y, 0.0, moveConfig)
+                                time.sleep(1.0)
+                                MOTION.moveTo(x, 0.0, 0.0, moveConfig)
+                                time.sleep(1.0)
+                                hitBall(0.1, robotIP, port)
+                                time.sleep(1.0)
                             else:
                                 hitBall(0.1, robotIP, port)
                                 time.sleep(1)
+                        #--------------------------------------近距离第三个球洞---------------------------------------------------------#
                         elif(holeFlag == 3):
-                            pass
-                    #没有检测到mark标志，检测黄杆
+                            hitBall(0.1, robotIP, port)
+                            time.sleep(1)
+                    #-----------------------------没有检测到 nao_mark 标志，检测黄杆，远距离打球----------------------------------------#
                     else:
                         stickInfo = yellowStickDetection(yellow_thresholdMin, yellow_thresholdMax, robotIP, port)
                         theta,x,y = calculation(redBallInfo,stickInfo)
-                        x -= 0.25
+                        #修正阈值，在场上需要根据实际情况调整
+                        theta -= 0.1
+                        x -= 0.30
                         y -= 0.05
                         robotRotate(theta, robotIP, port)
                         time.sleep(1.0)
@@ -284,23 +308,42 @@ def main(robotIP, port):
                             global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
-
+                        #---------------------------------------远距离第一个球洞------------------------------------------------------#
                         if(holeFlag == 1):
+                            MOTION.moveTo(0.0, 0.0, math.pi/2, moveConfig)
+                            time.sleep(1)
+                            MOTION.moveTo(-0.2, 0.0, 0.0, moveConfig)
+                            time.sleep(1)
+                            MOTION.moveTo(0.0, -0.2, 0.0, moveConfig)
+                            time.sleep(1)
                             hitBall(0.1, robotIP, port)
                             time.sleep(1)
+                            MOTION.moveTo(0, 0, -math.pi/2, moveConfig)
+                            time.sleep(1)
+                        #---------------------------------------远距离第二个球洞------------------------------------------------------#
                         elif(holeFlag == 2):
-                            tempAngle = whiteBlockDetection(0, robotIP, port)
+                            tempAngle = whiteBlockDetection(robotIP, port)
                             if(tempAngle):
-                                #旋转tempAngle把球打出去
-                                pass
+                                angleHit = math.pi/2 - tempAngle
+                                x = 0.2 * math.sin(tempAngle) - 0.20
+                                y = 0.2 * math.cos(tempAngle) - 0.05
+                                MOTION.moveTo(0.0, 0.0, angleHit, moveConfig)
+                                time.sleep(1.0)
+                                MOTION.moveTo(0.0, y, 0.0, moveConfig)
+                                time.sleep(1.0)
+                                MOTION.moveTo(x, 0.0, 0.0, moveConfig)
+                                time.sleep(1.0)
+                                hitBall(0.1, robotIP, port)
+                                time.sleep(1.0)
+
                             else:
                                 hitBall(0.1, robotIP, port)
                                 time.sleep(1)
+                        #---------------------------------------远距离第三个球洞------------------------------------------------------#
                         elif(holeFlag == 3):
-                            tempAngle = whiteBorderDetection(0, robotIP, port)
+                            tempAngle = whiteBorderDetection(robotIP, port)
                             if(tempAngle):
                                 pass
-                                #旋转tempAngle把球打出去
                             else:
                                 hitBall(0.1, robotIP, port)
                                 time.sleep(1)
@@ -309,7 +352,8 @@ def main(robotIP, port):
                             global robotHasFallenFlag
                             robotHasFallenFlag = 0
                             break
-
+                #------------------------------------------------次死循环结束--------------------------------------------------------#
+        #--------------------------------------------------------主死循环结束--------------------------------------------------------#
     except KeyboardInterrupt:
         print
         print "Interrupted by user, shutting down"
